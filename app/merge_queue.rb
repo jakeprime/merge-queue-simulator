@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'colorize'
+
 require_relative '../lib/time_helper'
 require_relative '../lib/time_simulator'
 
