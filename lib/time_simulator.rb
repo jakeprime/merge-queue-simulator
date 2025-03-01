@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 module TimeSimulator
-  TIME_SCALE = 1 / 60
+  TIME_SCALE = 1.0 / 60
 
   def in_about(time)
-    sleep(time * TIME_SCALE)
+    # randomly vary from 50% to 150% of given time value
+    random_variation = (Random.rand * 0.5) + 0.75
+    sleep(time * TIME_SCALE * random_variation)
 
     yield
   end
