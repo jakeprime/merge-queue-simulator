@@ -28,7 +28,7 @@ class GitClient
   def merge(branch_name)
     safely do
       client.checkout('main')
-      client.merge(branch_name)
+      client.merge(branch_name, "Merging #{branch_name}", no_ff: true)
       client.branch(branch_name).delete
     end
   end
