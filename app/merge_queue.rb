@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
+require 'colorize'
 require 'io/console'
 
 require_relative '../lib/time_helper'
 require_relative '../lib/time_simulator'
 
+require_relative 'circle'
 require_relative 'feature'
 require_relative 'git_client'
 require_relative 'printer'
@@ -14,9 +16,8 @@ class MergeQueue
 
   def initialize
     @git_client = GitClient.new
-    @printer = Printer.new(show_commands: true)
-
-    @features = []
+    @circle = Circle.new
+    @printer = Printer.new(circle, show_commands: true)
 
     loop do
       char = $stdin.getch
@@ -25,25 +26,22 @@ class MergeQueue
       break if char&.downcase == 'q'
     end
 
-    # features = 3.times.map { Feature.new(git_client, printer) }
-    # Feature.all.each(&:wait_for_completion)
-
     printer.stop
     git_client.teardown
   end
 
-  attr_reader :features, :git_client, :printer
+  attr_reader :features, :git_client, :printer, :circle
 
   private
 
   def perform_action(char)
     case char.downcase
     when 'b'
-      Feature.new(git_client, printer, create_branch: true, create_commit: true)
+      Feature.new(git_client, printer, circle, create_commit: true)
     when 'c'
       Feature.create_commit
     when 'm'
-      Feature.merge_branch
+      Thread.new { Feature.merge_branch; printer.print_output }
     end
 
     printer.print_output

@@ -33,6 +33,13 @@ class GitClient
     end
   end
 
+  def sha(branch_name)
+    safely do
+      client.checkout(branch_name)
+      client.object('HEAD').sha
+    end
+  end
+
   def teardown
     FileUtils.rm_rf(GIT_FOLDER)
   end
@@ -46,8 +53,9 @@ class GitClient
 
   def safely
     mutex.synchronize do
-      yield
+      result = yield
       client.checkout('main')
+      result
     end
   end
 

@@ -17,9 +17,10 @@ class Feature
     end
   end
 
-  def initialize(git, printer, create_branch: false, create_commit: false)
+  def initialize(git, printer, circle, create_branch: false, create_commit: false)
     @git = git
     @printer = printer
+    @circle = circle
 
     self.create_branch if create_branch || create_commit
     self.create_commit if create_commit
@@ -46,21 +47,29 @@ class Feature
     git.create_commit(branch_name)
   end
 
+  # this will take some time, don't wait on it synchronously
   def attempt_merge
+    printer.status = "Attempting merge on #{branch_name} (#{sha})"
     @merging = true
-    git.merge(branch_name)
+
+    git.merge(branch_name) if circle.run(sha) == Circle::SUCCESS
+    printer.status = 'Merging attempt completed'
   end
+
+  def circle_ci_status = circle.status(sha)
+
+  def sha = git.sha(branch_name)
 
   private
 
-  attr_reader :git, :thread, :printer
+  attr_reader :git, :thread, :printer, :circle
 
   def branch_name = @branch_name ||= "feature-#{Random.rand(9999)}"
 
   def create_branch
     printer.status = "Creating branch - #{branch_name}"
 
-    git.create_branch(branch_name)
+    @sha = git.create_branch(branch_name)
   end
 
   def make_some_commits

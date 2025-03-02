@@ -3,7 +3,10 @@
 require 'io/console'
 
 class Printer
-  def initialize(tail: false, show_commands: false)
+  def initialize(circle, tail: false, show_commands: false)
+    $stdout.sync = true
+
+    @circle = circle
     @statuses = []
     @show_commands = show_commands
 
@@ -38,11 +41,16 @@ class Printer
     output = `cd tmp && git log --oneline --decorate --graph --color=always --all && cd ..`
 
     IO.console.clear_screen
-    puts reversed_output(output)
-    puts ''
-    puts commands if show_commands
-    puts ''
-    puts statuses.last
+
+    lines = []
+    lines += reversed_output(with_circle_statuses(output)).lines
+    lines << ''
+    lines += commands if show_commands
+    lines << ''
+    lines << statuses.last
+    lines << ''
+
+    puts(lines.compact.map(&:strip).map { "\r#{it}\n" })
   end
 
   private
@@ -58,7 +66,30 @@ class Printer
         .gsub('\\', 'BACK_SLASH')
         .gsub('BACK_SLASH', '/')
         .gsub('FORWARD_SLASH', '\\')
-    end
+    end.join
+  end
+
+  def with_circle_statuses(output)
+    output.lines.map do |line|
+      sha = line.scan(/[a-f0-9]{7}/)[0]
+      next line unless sha
+
+      "#{line.strip} #{circle_status(sha)}\n"
+    end.join
+  end
+
+  def circle_status(sha)
+    status = @circle.status(sha)
+
+    color = {
+      Circle::SUCCESS => :green,
+      Circle::FAILURE => :red,
+      Circle::IN_PROGRESS => :yellow,
+    }[status]
+
+    return status unless color
+
+    status.to_s.send(color)
   end
 
   def commands
