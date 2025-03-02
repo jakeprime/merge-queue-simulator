@@ -3,14 +3,16 @@
 require 'io/console'
 
 class Printer
-  def initialize
-    @line_count = 0
+  def initialize(tail: false, show_commands: false)
     @statuses = []
+    @show_commands = show_commands
 
-    start
+    print_output
+
+    self.tail if tail
   end
 
-  def start
+  def tail
     return if printing?
 
     @printing = true
@@ -29,25 +31,25 @@ class Printer
   end
 
   def status=(message)
-    # statuses << message
+    statuses << message
+  end
+
+  def print_output
+    output = `cd tmp && git log --oneline --decorate --graph --color=always --all && cd ..`
+
+    IO.console.clear_screen
+    puts reversed_output(output)
+    puts ''
+    puts commands if show_commands
+    puts ''
+    puts statuses.last
   end
 
   private
 
-  attr_reader :line_count, :statuses
+  attr_reader :statuses, :show_commands
 
   def printing? = @printing
-
-  def print_output
-    output = `cd tmp && git log --oneline --decorate --graph --color=always --all && cd ..`
-    # puts "\e[A\e[K" * line_count
-    IO.console.clear_screen
-    puts reversed_output(output)
-    puts statuses.last || ''
-    # puts statuses.join("\n") if statuses.any?
-
-    # @line_count = output.lines.count + 2
-  end
 
   def reversed_output(output)
     output.lines.reverse.map do |line|
@@ -57,5 +59,16 @@ class Printer
         .gsub('BACK_SLASH', '/')
         .gsub('FORWARD_SLASH', '\\')
     end
+  end
+
+  def commands
+    [
+      'Perform an action on a random branch',
+      '',
+      'B: Create a new branch',
+      'C: Create a new commit',
+      'M: Merge a branch',
+      'Q: Quit',
+    ]
   end
 end

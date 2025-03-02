@@ -3,10 +3,31 @@
 class Feature
   include TimeSimulator
 
-  def initialize(git, printer)
+  @all = []
+
+  class << self
+    attr_reader :all
+
+    def create_commit
+      all.reject(&:merging?).sample&.create_commit
+    end
+
+    def merge_branch
+      all.reject(&:merging?).sample&.attempt_merge
+    end
+  end
+
+  def initialize(git, printer, create_branch: false, create_commit: false)
     @git = git
     @printer = printer
 
+    self.create_branch if create_branch || create_commit
+    self.create_commit if create_commit
+
+    self.class.all << self
+  end
+
+  def simulate!
     @thread = Thread.new do
       in_about(10.minutes) { create_branch }
       make_some_commits
@@ -15,7 +36,19 @@ class Feature
   end
 
   def wait_for_completion
-    thread.join
+    thread&.join
+  end
+
+  def merging? = @merging
+
+  def create_commit
+    printer.status = "Creating commit on #{branch_name}"
+    git.create_commit(branch_name)
+  end
+
+  def attempt_merge
+    @merging = true
+    git.merge(branch_name)
   end
 
   private
@@ -33,18 +66,8 @@ class Feature
   def make_some_commits
     (1..3).to_a.sample.times do
       in_about(1.minutes) do
-        printer.status = "Creating commit on #{branch_name}"
-        git.create_commit(branch_name)
+        create_commit
       end
     end
-  end
-
-  def attempt_merge
-    git.merge(branch_name)
-    # return unless branch.pass_ci?
-
-    # branch.merge
-
-    # printer.status = "Creating commit - #{branch.name_in_color}:#{branch.head}"
   end
 end
