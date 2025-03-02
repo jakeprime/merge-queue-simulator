@@ -13,7 +13,8 @@ class MergeQueue
   def initialize
     puts 'Merge queue simulator'
 
-    Feature.new(git)
+    features = 2.times.map { Feature.new(git) }
+    features.each(&:wait_for_me)
   end
 
   def git = @git ||= Git.new

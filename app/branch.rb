@@ -3,18 +3,35 @@
 class Branch
   CI_FAIL_CHANCE = 1.0 / 3
 
+  @colors = %i[green yellow blue magenta]
+
+  class << self
+    attr_accessor :colors
+  end
+
   def initialize(git, name: generate_name, from_branch: nil)
     @git = git
     @name = name
-    @commits = []
     @base = from_branch&.head
 
-    puts "Creating new branch - #{name}"
+    puts "Creating new branch - #{name_in_color}"
   end
+
+  def name_in_color = @name_in_color ||= name.send(color)
 
   def create_commit(sha: generate_sha)
     commits.push(sha)
   end
+
+  def commits = @commits ||= []
+
+  def color
+    return :green if main?
+
+    @color ||= self.class.colors.rotate!.first
+  end
+
+  def main? = name == 'main'
 
   def pass_ci?
     success = Random.rand > CI_FAIL_CHANCE
@@ -27,14 +44,14 @@ class Branch
 
   def merge
     @merge_commit = generate_sha
-    puts "Merging #{name}:#{merge_commit} into main"
+    puts "Merging #{name_in_color}:#{merge_commit} into main"
 
     git.main.create_commit(sha: merge_commit)
   end
 
   def head = commits.last
 
-  attr_reader :git, :commits, :name, :base, :merge_commit
+  attr_reader :git, :base, :merge_commit, :name
 
   private
 

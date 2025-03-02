@@ -6,14 +6,20 @@ class Feature
   def initialize(git)
     @git = git
 
-    in_about(10.minutes) { create_branch }
-    make_some_commits
-    in_about(10.minutes) { attempt_merge }
+    @thread = Thread.new do
+      in_about(10.minutes) { create_branch }
+      make_some_commits
+      in_about(10.minutes) { attempt_merge }
+    end
+  end
+
+  def wait_for_me
+    thread.join
   end
 
   private
 
-  attr_reader :branch, :git
+  attr_reader :branch, :git, :thread
 
   def create_branch
     @branch = git.create_branch
@@ -28,6 +34,6 @@ class Feature
 
     branch.merge
 
-    puts "Creating commit - #{branch.name}:#{branch.head}"
+    puts "Creating commit - #{branch.name_in_color}:#{branch.head}"
   end
 end

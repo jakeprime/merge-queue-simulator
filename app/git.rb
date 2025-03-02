@@ -2,7 +2,7 @@
 
 class Git
   def initialize
-    @main = Branch.new(self, name: :main).tap { it.create_commit }
+    @main = Branch.new(self, name: 'main').tap { it.create_commit }
     @branches = []
   end
 
