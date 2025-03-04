@@ -34,6 +34,8 @@ class Feature
       make_some_commits
       in_about(10.minutes) { attempt_merge }
     end
+
+    self
   end
 
   def wait_for_completion
