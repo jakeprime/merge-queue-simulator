@@ -54,6 +54,7 @@ class Feature
     printer.status = "Attempting merge on #{branch_name} (#{sha})"
     @merging = true
 
+    git.rebase_main(branch_name)
     git.merge(branch_name) if circle.run(sha) == Circle::SUCCESS
     printer.status = 'Merging attempt completed'
   end

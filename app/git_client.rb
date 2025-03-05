@@ -5,7 +5,10 @@ require 'git'
 class GitClient
   GIT_FOLDER = File.join(File.dirname(__FILE__), '..', 'tmp')
 
-  def initialize
+  def initialize(printer:, rebase:)
+    @rebase = rebase
+    @printer = printer
+
     @client = init_repo!
     @mutex = Mutex.new
 
@@ -25,9 +28,21 @@ class GitClient
     end
   end
 
+  def rebase_main(branch_name)
+    safely do
+      if rebase
+        printer.status = "Rebasing #{branch_name}"
+
+        client.checkout(branch_name)
+        system("cd #{GIT_FOLDER}")
+        system('git rebase main')
+      end
+      client.checkout('main')
+    end
+  end
+
   def merge(branch_name)
     safely do
-      client.checkout('main')
       client.merge(branch_name, "Merging #{branch_name}", no_ff: true)
       client.branch(branch_name).delete
     end
@@ -59,5 +74,5 @@ class GitClient
     end
   end
 
-  attr_reader :client, :mutex
+  attr_reader :client, :mutex, :rebase, :printer
 end

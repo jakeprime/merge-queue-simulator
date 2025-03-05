@@ -9,14 +9,13 @@ module Cli
   extend Dry::CLI::Registry
 
   class MergeQueue < Dry::CLI::Command
-    desc 'Merge queue simulator'
-
     option :auto, type: :boolean, default: false, desc: 'Run simulator automatically'
-    option :features, type: :string, default: '3', desc: "Number of features to create when --auto is true"
+    option :features, type: :string, default: '3', desc: 'Number of features to create when --auto is true'
+    option :rebase, type: :boolean, default: false, desc: 'Rebase when merging'
 
-    def call(auto:, features:)
+    def call(auto:, features:, rebase:)
       features = features.to_i
-      ::MergeQueue.new(auto:, features:)
+      ::MergeQueue.new(auto:, features:, rebase:)
     end
   end
 end
