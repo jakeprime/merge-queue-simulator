@@ -25,6 +25,14 @@ class GitClient
     end
   end
 
+  def rebase_main(branch_name)
+    safely do
+      client.checkout(branch_name)
+      `pushd #{GIT_FOLDER}; git rebase main; popd`
+    end
+    client.checkout('main')
+  end
+
   def merge(branch_name)
     safely do
       client.checkout('main')

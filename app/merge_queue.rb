@@ -14,10 +14,14 @@ require_relative 'printer'
 class MergeQueue
   include TimeSimulator
 
-  def initialize(auto:, features:)
-    @git_client = GitClient.new
+  def initialize(auto:, features:, persist_log:, rebase:)
+    @rebase = rebase
+
     @circle = Circle.new
-    @printer = Printer.new(circle, tail: auto, show_commands: !auto)
+    @git_client = GitClient.new
+    @printer = Printer.new(circle, tail: auto, persist: persist_log, show_commands: !auto)
+
+    printer.print_output
 
     if auto
       features.times.map { create_feature }
@@ -36,11 +40,11 @@ class MergeQueue
     git_client.teardown
   end
 
-  attr_reader :features, :git_client, :printer, :circle
+  attr_reader :features, :git_client, :printer, :circle, :rebase
 
   private
 
-  def create_feature = Feature.new(git_client, printer, circle)
+  def create_feature = Feature.new(git_client, printer, circle, rebase:)
 
   def perform_action(char)
     case char.downcase

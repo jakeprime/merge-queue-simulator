@@ -3,12 +3,13 @@
 require 'io/console'
 
 class Printer
-  def initialize(circle, tail: false, show_commands: false)
+  def initialize(circle, tail: false, persist: false, show_commands: false)
     $stdout.sync = true
 
     @circle = circle
     @statuses = []
     @show_commands = show_commands
+    @persist = persist
 
     print_output
 
@@ -47,10 +48,10 @@ class Printer
     lines << ''
     lines += commands if show_commands
     lines << ''
-    lines << statuses.last
+    lines += (persist? ? statuses : [statuses.last])
     lines << ''
 
-    puts(lines.compact.map(&:strip).map { "\r#{it}\n" })
+    puts(lines.compact.map(&:strip).map { "#{it}\r" })
   end
 
   private
@@ -58,6 +59,7 @@ class Printer
   attr_reader :statuses, :show_commands
 
   def printing? = @printing
+  def persist? = @persist
 
   def reversed_output(output)
     output.lines.reverse.map do |line|
