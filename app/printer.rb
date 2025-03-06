@@ -49,7 +49,6 @@ class Printer
     lines << ''
     lines += (persist? ? statuses : [statuses.last])
     lines << ''
-    lines += circle_state
 
     IO.console.clear_screen
     puts(lines.compact.map(&:strip).map { "#{it}\r" })
