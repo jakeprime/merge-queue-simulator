@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module TimeSimulator
-  TIME_SCALE = 1.0 / 300
+  TIME_SCALE = 1.0 / 3000
 
   def in_about(time)
     # randomly vary from 75% to 125% of given time value

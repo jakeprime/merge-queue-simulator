@@ -33,9 +33,9 @@ class Feature
 
   def simulate!
     @thread = Thread.new do
-      in_up_to(10.minutes) { create_branch }
+      in_up_to(1.day) { create_branch }
       make_some_commits
-      in_up_to(10.minutes) { attempt_merge }
+      in_up_to(1.hour) { attempt_merge }
     end
 
     self
@@ -82,7 +82,7 @@ class Feature
 
   def make_some_commits
     (1..3).to_a.sample.times do
-      in_up_to(10.minutes) do
+      in_up_to(1.hour) do
         create_commit
       end
     end
