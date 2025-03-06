@@ -3,6 +3,7 @@
 require_relative 'merge_strategy/holding_pen'
 require_relative 'merge_strategy/queue_branches'
 require_relative 'merge_strategy/rebase_before_ci'
+require_relative 'merge_strategy/yolo'
 
 module MergeStrategy
 end
