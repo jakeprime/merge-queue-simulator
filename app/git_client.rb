@@ -56,6 +56,14 @@ class GitClient
     end
   end
 
+  def commit_message(sha)
+    client.gcommit(sha).message
+  end
+
+  def parents(sha)
+    client.gcommit(sha).log.map(&:sha) - [sha]
+  end
+
   def teardown
     FileUtils.rm_rf(GIT_FOLDER)
   end

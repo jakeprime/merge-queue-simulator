@@ -20,8 +20,8 @@ class MergeQueue
   def initialize(auto:, features:, persist_log:, rebase:)
     @rebase = rebase
 
-    @circle = Circle.new
     @git_client = GitClient.new
+    @circle = Circle.new(git: git_client)
     @printer = Printer.new(circle, tail: auto, persist: persist_log, show_commands: !auto)
 
     printer.print_output

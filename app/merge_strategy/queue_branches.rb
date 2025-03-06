@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'memery'
+
 require_relative '../file_logger'
 
 # create a new branch for each feature
@@ -9,6 +11,8 @@ require_relative '../file_logger'
 # deal with failures later
 module MergeStrategy
   class QueueBranches
+    include Memery
+
     def initialize(git:, circle:)
       @circle = circle
       @git = git
@@ -24,46 +28,62 @@ module MergeStrategy
       merge_branches << merge_branch
 
       sha = git.sha(merge_branch)
-      if circle.run(sha) == Circle::SUCCESS
-        handle_success(merge_branch, feature.branch_name)
+
+      result = circle.run(sha, result: feature.ci_result)
+
+      if result == Circle::SUCCESS
+        handle_success(merge_branch, feature)
       else
-        handle_failure(merge_branch)
+        handle_failure(merge_branch, feature)
       end
     end
 
     private
+
+    def mutex = Mutex.new
+    memoize :mutex
 
     def count
       @count ||= 0
       @count += 1
     end
 
-    def handle_success(merge_branch, feature_branch)
+    def handle_success(merge_branch, feature)
       Thread.new do
-        loop do
-          break unless merge_branches.include?(merge_branch)
+        success = loop do
+          mutex.synchronize do
+            break false unless merge_branches.include?(merge_branch)
 
-          if merge_branch == merge_branches.first
-            git.rebase_main(merge_branch)
-            git.merge(merge_branch)
-            git.delete_branch(feature_branch)
-            break
+            if merge_branch == merge_branches.first
+              git.rebase_main(merge_branch) # give us a nice merge bubble please
+              git.merge(merge_branch)
+              merge_branches.shift
+              git.delete_branch(feature.branch_name)
+              break true
+            end
           end
 
           sleep(1)
         end
+        handle_failure(merge_branch, feature) unless success
       end.join
-
-      merge_branches.shift
     end
 
-    def handle_failure(branch_name)
-      # ditch the current and all following queues
-      @merge_queues = merge_queues[0...(merge_queues.index(branch_name))]
+    def handle_failure(branch_name, feature)
+      position = merge_branches.index(branch_name)
+
+      merge_branches.slice!(position..-1) if position
+      git.delete_branch(branch_name) # and the repo
+
+      # if this wasn't the first feature in the queue than the failure was likely
+      # from a previous commit, so try again
+      return if position&.zero?
+      merge(feature)
     end
 
     def branch_name = "merge-queue-#{count}"
 
-    attr_reader :git, :circle, :merge_branches
+    attr_accessor :merge_branches
+    attr_reader :git, :circle
   end
 end
