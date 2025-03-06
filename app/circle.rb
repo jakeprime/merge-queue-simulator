@@ -18,8 +18,6 @@ class Circle
   attr_reader :test_results
 
   def run(sha, result: random_result)
-    return test_results[sha] if test_results[sha]
-
     test_results[sha] = IN_PROGRESS
 
     in_about(10.minutes) do

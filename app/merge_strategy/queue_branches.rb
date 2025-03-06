@@ -22,6 +22,7 @@ module MergeStrategy
 
     def merge(feature)
       merge_branch = branch_name
+      git.rebase_main(feature.branch_name)
       git.create_branch(merge_branch, start_point: feature.branch_name)
       git.rebase(merge_branch, onto: (merge_branches.last || 'main'))
 

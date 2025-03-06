@@ -27,7 +27,7 @@ class GitClient
 
   def rebase_main(branch_name, **) = rebase(branch_name, onto: 'main', **)
 
-  def rebase(branch_name, onto:, **opts)
+  def rebase(branch_name, onto: 'main', **opts)
     options = opts.keys.map { "--#{it.to_s.gsub('_', '-')}" }.join(' ')
 
     safely do
@@ -37,10 +37,10 @@ class GitClient
     client.checkout('main')
   end
 
-  def merge(branch_name, onto: 'main')
+  def merge(branch_name, onto: 'main', no_ff: true)
     safely do
       client.checkout(onto)
-      client.merge(branch_name, "Merging #{branch_name}", no_ff: true)
+      client.merge(branch_name, "Merging #{branch_name}", no_ff:)
       delete_branch(branch_name) if onto == 'main'
     end
   end
