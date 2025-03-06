@@ -17,10 +17,11 @@ class Feature
     end
   end
 
-  def initialize(git, printer, circle, create_branch: false, create_commit: false, rebase: false)
+  def initialize(git, printer, circle, merge_strategy:, create_branch: false, create_commit: false, rebase: false)
     @git = git
     @printer = printer
     @circle = circle
+    @merge_strategy = merge_strategy
     @rebase = rebase
 
     self.create_branch if create_branch || create_commit
@@ -55,24 +56,19 @@ class Feature
     printer.status = "Attempting merge on #{branch_name} (#{sha})"
     @merging = true
 
-    git.rebase_main(branch_name) if rebase?
-    if circle.run(sha) == Circle::SUCCESS
-      git.merge(branch_name) 
-    end
+    merge_strategy.merge(self)
     printer.status = 'Merging attempt completed'
   end
 
   def circle_ci_status = circle.status(sha)
-
   def sha = git.sha(branch_name)
+  def branch_name = @branch_name ||= "feature-#{Random.rand(9999)}"
 
   private
 
-  attr_reader :git, :thread, :printer, :circle
+  attr_reader :git, :thread, :printer, :circle, :merge_strategy
 
   def rebase? = @rebase
-
-  def branch_name = @branch_name ||= "feature-#{Random.rand(9999)}"
 
   def create_branch
     printer.status = "Creating branch - #{branch_name}"

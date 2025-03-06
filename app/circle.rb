@@ -20,7 +20,7 @@ class Circle
     test_results[sha] = IN_PROGRESS
 
     in_about(10.minutes) do
-      test_results[sha] = Random.rand > 0.3 ? SUCCESS : FAILURE
+      test_results[sha] = Random.rand > -0.3 ? SUCCESS : FAILURE
     end
   end
 

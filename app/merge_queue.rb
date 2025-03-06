@@ -2,6 +2,7 @@
 
 require 'colorize'
 require 'io/console'
+require 'memery'
 
 require_relative '../lib/time_helper'
 require_relative '../lib/time_simulator'
@@ -9,9 +10,11 @@ require_relative '../lib/time_simulator'
 require_relative 'circle'
 require_relative 'feature'
 require_relative 'git_client'
+require_relative 'merge_strategy'
 require_relative 'printer'
 
 class MergeQueue
+  include Memery
   include TimeSimulator
 
   def initialize(auto:, features:, persist_log:, rebase:)
@@ -44,12 +47,15 @@ class MergeQueue
 
   private
 
-  def create_feature = Feature.new(git_client, printer, circle, rebase:)
+  def merge_strategy = MergeStrategy::RebaseBeforeCi.new(git: git_client, circle:)
+  memoize :merge_strategy
+
+  def create_feature = Feature.new(git_client, printer, circle, merge_strategy:)
 
   def perform_action(char)
     case char.downcase
     when 'b'
-      Feature.new(git_client, printer, circle, create_commit: true)
+      Feature.new(git_client, printer, circle, merge_strategy:, create_commit: true)
     when 'c'
       Feature.create_commit
     when 'm'
