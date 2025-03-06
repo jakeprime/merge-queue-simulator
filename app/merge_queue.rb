@@ -48,7 +48,8 @@ class MergeQueue
   private
 
   # def merge_strategy = MergeStrategy::RebaseBeforeCi.new(git: git_client, circle:)
-  def merge_strategy = MergeStrategy::QueueBranches.new(git: git_client, circle:)
+  # def merge_strategy = MergeStrategy::QueueBranches.new(git: git_client, circle:)
+  def merge_strategy = MergeStrategy::HoldingPen.new(git: git_client, circle:)
   memoize :merge_strategy
 
   def create_feature = Feature.new(git_client, printer, circle, merge_strategy:)
