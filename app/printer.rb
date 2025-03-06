@@ -65,10 +65,14 @@ class Printer
   def reversed_output(output)
     output.lines.reverse.map do |line|
       line
-        .gsub('/', 'FORWARD_SLASH')
-        .gsub('\\', 'BACK_SLASH')
-        .gsub('BACK_SLASH', '/')
-        .gsub('FORWARD_SLASH', '\\')
+        .gsub('/', 'FORWARDSLASH')
+        .gsub('\\', 'BACKSLASH')
+        .gsub('‾', 'OVERLINE')
+        .gsub('_', 'UNDERSCORE')
+        .gsub('BACKSLASH', '/')
+        .gsub('FORWARDSLASH', '\\')
+        .gsub('OVERLINE', '_')
+        .gsub('UNDERSCORE', '‾')
     end.join
   end
 
