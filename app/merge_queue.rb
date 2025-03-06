@@ -17,8 +17,8 @@ class MergeQueue
   include Memery
   include TimeSimulator
 
-  def initialize(auto:, features:, persist_log:, rebase:)
-    @rebase = rebase
+  def initialize(auto:, features:, persist_log:, strategy: 'sq')
+    @strategy = strategy
 
     @git_client = GitClient.new
     @circle = Circle.new(git: git_client)
@@ -43,13 +43,18 @@ class MergeQueue
     git_client.teardown
   end
 
-  attr_reader :features, :git_client, :printer, :circle, :rebase
+  attr_reader :features, :git_client, :printer, :circle, :strategy
 
   private
 
-  # def merge_strategy = MergeStrategy::RebaseBeforeCi.new(git: git_client, circle:)
-  # def merge_strategy = MergeStrategy::QueueBranches.new(git: git_client, circle:)
-  def merge_strategy = MergeStrategy::HoldingPen.new(git: git_client, circle:)
+  def merge_strategy
+    {
+      'yolo' => MergeStrategy::Yolo.new(git: git_client, circle:),
+      'rebase' => MergeStrategy::RebaseBeforeCi.new(git: git_client, circle:),
+      'mq' => MergeStrategy::QueueBranches.new(git: git_client, circle:),
+      'sq' => MergeStrategy::HoldingPen.new(git: git_client, circle:),
+    }[strategy]
+  end
   memoize :merge_strategy
 
   def create_feature = Feature.new(git_client, printer, circle, merge_strategy:)

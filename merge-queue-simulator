@@ -9,14 +9,38 @@ module Cli
   extend Dry::CLI::Registry
 
   class MergeQueue < Dry::CLI::Command
-    option :auto, type: :boolean, default: false, desc: 'Run simulator automatically'
-    option :persist_log, type: :boolean, default: false, desc: 'Keep all log messages on screen'
-    option :features, type: :string, default: '3', desc: 'Number of features to create when --auto is true'
-    option :rebase, type: :boolean, default: false, desc: 'Rebase when merging'
+    option :auto,
+           type: :boolean,
+           aliases: ['-a'],
+           default: true,
+           desc: 'Run simulator automatically'
 
-    def call(auto:, features:, persist_log:, rebase:)
+    option :persist_log,
+           type: :boolean,
+           default: false,
+           desc: 'Keep all log messages on screen'
+
+    option :features,
+           type: :integer,
+           aliases: ['-f'],
+           default: 3,
+           desc: 'Number of features to create when --auto is true'
+
+    option :strategy,
+           type: :string,
+           aliases: ['-s'],
+           default: 'sq',
+           desc: <<~DESC
+             Merge strategy
+             \t\t\t\t      sq (default):\tSingle branch at a time runs CI on queued up PRs
+             \t\t\t\t      mq:\t\tNew CI branch for each PR, including previous unmerged PRs
+             \t\t\t\t      rebase:\t\tNo merge queues, but folks rebase to main before merging
+             \t\t\t\t      yolo:\t\tNo rules, you do you
+          DESC
+
+    def call(auto:, features:, persist_log:, strategy:)
       features = features.to_i
-      ::MergeQueue.new(auto:, features:, persist_log:, rebase:)
+      ::MergeQueue.new(auto:, features:, persist_log:, strategy:)
     end
   end
 end
