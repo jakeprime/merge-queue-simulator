@@ -12,9 +12,9 @@ class GitClient
     client.commit('Initial commit', allow_empty: true)
   end
 
-  def create_branch(branch_name)
+  def create_branch(branch_name, start_point: 'main')
     safely do
-      client.checkout(branch_name, new_branch: true, start_point: 'main')
+      client.checkout(branch_name, new_branch: true, start_point:)
     end
   end
 
@@ -25,20 +25,28 @@ class GitClient
     end
   end
 
-  def rebase_main(branch_name)
+  def rebase_main(branch_name, **) = rebase(branch_name, onto: 'main', **)
+
+  def rebase(branch_name, onto:, **opts)
+    options = opts.keys.map { "--#{it.to_s.gsub('_', '-')}" }.join(' ')
+
     safely do
       client.checkout(branch_name)
-      `pushd #{GIT_FOLDER}; git rebase main; popd`
+      `pushd #{GIT_FOLDER}; git rebase #{options} #{onto}; popd`
     end
     client.checkout('main')
   end
 
-  def merge(branch_name)
+  def merge(branch_name, onto: 'main')
     safely do
-      client.checkout('main')
+      client.checkout(onto)
       client.merge(branch_name, "Merging #{branch_name}", no_ff: true)
-      client.branch(branch_name).delete
+      delete_branch(branch_name) if onto == 'main'
     end
+  end
+
+  def delete_branch(branch_name)
+    client.branch(branch_name).delete
   end
 
   def sha(branch_name)
