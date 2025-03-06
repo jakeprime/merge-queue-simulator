@@ -41,7 +41,6 @@ class Printer
   def print_output
     output = `cd tmp && git log --oneline --decorate --graph --color=always --all && cd ..`
 
-    IO.console.clear_screen
 
     lines = []
     lines += reversed_output(with_circle_statuses(output)).lines
@@ -50,13 +49,15 @@ class Printer
     lines << ''
     lines += (persist? ? statuses : [statuses.last])
     lines << ''
+    lines += circle_state
 
+    IO.console.clear_screen
     puts(lines.compact.map(&:strip).map { "#{it}\r" })
   end
 
   private
 
-  attr_reader :statuses, :show_commands
+  attr_reader :statuses, :show_commands, :circle
 
   def printing? = @printing
   def persist? = @persist
@@ -81,17 +82,20 @@ class Printer
   end
 
   def circle_status(sha)
-    status = @circle.status(sha)
+    return {
+      Circle::SUCCESS => '🟢',
+      Circle::FAILURE => '🔴',
+      Circle::IN_PROGRESS => '🟡',
+    }[circle.status(sha)]
+  end
 
-    color = {
-      Circle::SUCCESS => :green,
-      Circle::FAILURE => :red,
-      Circle::IN_PROGRESS => :yellow,
-    }[status]
-
-    return status unless color
-
-    status.to_s.send(color)
+  def circle_state
+    [
+      'Circle state:',
+      "In progress: #{circle.in_progress}",
+      "Pass: #{circle.successes}",
+      "Fail: #{circle.failures}",
+    ]
   end
 
   def commands
