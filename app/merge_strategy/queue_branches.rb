@@ -4,11 +4,6 @@ require 'memery'
 
 require_relative '../file_logger'
 
-# create a new branch for each feature
-# rebase each one on the head of the previous
-# run ci
-# merge in order when successful
-# deal with failures later
 module MergeStrategy
   class QueueBranches
     include Memery
@@ -22,7 +17,6 @@ module MergeStrategy
 
     def merge(feature)
       merge_branch = branch_name
-      git.rebase_main(feature.branch_name)
       git.create_branch(merge_branch, start_point: feature.branch_name)
       git.rebase(merge_branch, onto: (merge_branches.last || 'main'))
 
@@ -32,11 +26,9 @@ module MergeStrategy
 
       result = circle.run(sha, result: feature.ci_result)
 
-      if result == Circle::SUCCESS
-        handle_success(merge_branch, feature)
-      else
-        handle_failure(merge_branch, feature)
-      end
+      return if result == Circle::SUCCESS && handle_success(merge_branch, feature)
+
+      handle_failure(merge_branch, feature)
     end
 
     private
@@ -50,24 +42,19 @@ module MergeStrategy
     end
 
     def handle_success(merge_branch, feature)
+      # wait while branch is still in the queue
       Thread.new do
-        success = loop do
-          mutex.synchronize do
-            break false unless merge_branches.include?(merge_branch)
-
-            if merge_branch == merge_branches.first
-              git.rebase_main(merge_branch) # give us a nice merge bubble please
-              git.merge(merge_branch)
-              merge_branches.shift
-              git.delete_branch(feature.branch_name)
-              break true
-            end
-          end
-
-          sleep(1)
-        end
-        handle_failure(merge_branch, feature) unless success
+        sleep(1) while merge_branches.index(merge_branch)&.positive?
       end.join
+
+      return false unless merge_branches.first == merge_branch
+
+      mutex.synchronize do
+        git.delete_branch(merge_branch)
+        git.rebase_main(feature.branch_name)
+        git.merge(feature.branch_name)
+        merge_branches.shift
+      end
     end
 
     def handle_failure(branch_name, feature)
