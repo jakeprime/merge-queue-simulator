@@ -27,8 +27,10 @@ class MergeQueue
     printer.print_output
 
     if auto
-      features.times.map { create_feature }
-        .map { it.simulate!(commits:) }
+      features.times
+        .map do |count|
+          create_feature.tap { it.simulate!(in_about: count.hours, commits:) }
+      end
         .map(&:wait_for_completion)
     else
       loop do

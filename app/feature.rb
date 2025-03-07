@@ -31,9 +31,9 @@ class Feature
     self.class.all << self
   end
 
-  def simulate!(commits:)
+  def simulate!(in_about:, commits:)
     @thread = Thread.new do
-      in_up_to(1.day) { create_branch }
+      in_about(in_about) { create_branch }
       make_some_commits(commits)
       in_up_to(1.hour) { attempt_merge }
     end
