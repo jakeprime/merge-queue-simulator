@@ -17,7 +17,7 @@ class MergeQueue
   include Memery
   include TimeSimulator
 
-  def initialize(auto:, features:, persist_log:, strategy: 'sq')
+  def initialize(auto:, commits:, features:, persist_log:, strategy: 'sq')
     @strategy = strategy
 
     @git_client = GitClient.new
@@ -28,7 +28,7 @@ class MergeQueue
 
     if auto
       features.times.map { create_feature }
-        .map(&:simulate!)
+        .map { it.simulate!(commits:) }
         .map(&:wait_for_completion)
     else
       loop do

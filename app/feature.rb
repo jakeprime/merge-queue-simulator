@@ -31,10 +31,10 @@ class Feature
     self.class.all << self
   end
 
-  def simulate!
+  def simulate!(commits:)
     @thread = Thread.new do
       in_up_to(1.day) { create_branch }
-      make_some_commits
+      make_some_commits(commits)
       in_up_to(1.hour) { attempt_merge }
     end
 
@@ -80,8 +80,8 @@ class Feature
     @sha = git.create_branch(branch_name)
   end
 
-  def make_some_commits
-    (1..3).to_a.sample.times do
+  def make_some_commits(commits)
+    (1..commits).to_a.sample.times do
       in_up_to(1.hour) do
         create_commit
       end

@@ -26,6 +26,12 @@ module Cli
            default: 3,
            desc: 'Number of features to create when --auto is true'
 
+    option :commits,
+           type: :integer,
+           aliases: ['-c'],
+           default: 3,
+           desc: 'Upper range for random number of commits per feature when --auto is true'
+
     option :strategy,
            type: :string,
            aliases: ['-s'],
@@ -38,9 +44,10 @@ module Cli
              \t\t\t\t      yolo:\t\tNo rules, you do you
           DESC
 
-    def call(auto:, features:, persist_log:, strategy:)
+    def call(auto:, commits:, features:, persist_log:, strategy:)
+      commits = commits.to_i
       features = features.to_i
-      ::MergeQueue.new(auto:, features:, persist_log:, strategy:)
+      ::MergeQueue.new(auto:, commits:, features:, persist_log:, strategy:)
     end
   end
 end
