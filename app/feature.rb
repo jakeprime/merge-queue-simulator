@@ -41,7 +41,7 @@ class Feature
     self
   end
 
-  def ci_result = Random.rand < -0.1 ? Circle::FAILURE : Circle::SUCCESS
+  def ci_result = Random.rand < 0.3 ? Circle::FAILURE : Circle::SUCCESS
   memoize :ci_result
 
   def wait_for_completion
