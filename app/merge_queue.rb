@@ -32,6 +32,7 @@ class MergeQueue
           create_feature.tap { it.simulate!(in_about: count.hours, commits:) }
       end
         .map(&:wait_for_completion)
+      git_client.create_commit('main')
     else
       loop do
         char = $stdin.getch
