@@ -66,7 +66,21 @@ class Feature
 
   def circle_ci_status = circle.status(sha)
   def sha = git.sha(branch_name)
-  def branch_name = @branch_name ||= "feature-#{Random.rand(9999)}"
+
+  def branch_name
+    jira = 3.times.map { ('A'..'Z').to_a.sample }.join
+    verb = %w[create change add remove].sample
+    squad = %w[ewa cbc partners voice ci onboarding fraud].sample
+    noun = %w[plan conditions waitlist test].sample
+
+    [jira, count, verb, squad, noun].join('-')
+  end
+  memoize :branch_name
+
+  def count
+    @count ||= 101
+    @count += 1
+  end
 
   private
 

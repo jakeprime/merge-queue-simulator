@@ -21,8 +21,16 @@ class GitClient
   def create_commit(branch_name)
     safely do
       client.checkout(branch_name)
-      client.commit("Done some work #{Random.rand(9999)}", allow_empty: true)
+      client.commit(commit_description, allow_empty: true)
     end
+  end
+
+  def commit_description
+    verb = %w[Introduce Refactor Fix Update Delete Move Add Improve].sample
+    adjective = %w[new old legacy rebranded failing test awesome].sample
+    object = %w[interface subscriptions tests UI UX API prompt messaging].sample
+
+    [verb, adjective, object].join(' ')
   end
 
   def rebase_main(branch_name, **) = rebase(branch_name, onto: 'main', **)
