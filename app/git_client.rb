@@ -40,7 +40,7 @@ class GitClient
 
     safely do
       client.checkout(branch_name)
-      `pushd #{GIT_FOLDER}; git rebase #{options} #{onto}; popd`
+      `pushd #{GIT_FOLDER}; git rebase #{options} #{onto} > /dev/null 2>&1; popd`
     end
     client.checkout('main')
   end
