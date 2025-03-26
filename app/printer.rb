@@ -3,13 +3,14 @@
 require 'io/console'
 
 class Printer
-  def initialize(circle, tail: false, persist: false, show_commands: false)
+  def initialize(circle, tail: false, persist: false, show_commands: false, silent: true)
     $stdout.sync = true
 
     @circle = circle
     @statuses = []
     @show_commands = show_commands
     @persist = persist
+    @silent = silent
 
     print_output
 
@@ -41,14 +42,15 @@ class Printer
   def print_output
     output = `cd tmp && git log --oneline --decorate --graph --color=always --all && cd ..`
 
-
     lines = []
     lines += reversed_output(with_circle_statuses(output)).lines
-    lines << ''
-    lines += commands if show_commands
-    lines << ''
-    lines += (persist? ? statuses : [statuses.last])
-    lines << ''
+    unless silent
+      lines << ''
+      lines += commands if show_commands
+      lines << ''
+      lines += (persist? ? statuses : [statuses.last])
+      lines << ''
+    end
 
     IO.console.clear_screen
     puts(lines.compact.map(&:strip).map { "#{it}\r" })
@@ -56,7 +58,7 @@ class Printer
 
   private
 
-  attr_reader :statuses, :show_commands, :circle
+  attr_reader :statuses, :show_commands, :circle, :silent
 
   def printing? = @printing
   def persist? = @persist

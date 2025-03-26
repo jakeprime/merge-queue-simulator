@@ -32,6 +32,11 @@ module Cli
            default: 3,
            desc: 'Upper range for random number of commits per feature when --auto is true'
 
+    option :silent,
+           type: :boolean,
+           default: true,
+           desc: 'Don’t show log outputs on screen'
+
     option :strategy,
            type: :string,
            aliases: ['-s'],
@@ -42,12 +47,12 @@ module Cli
              \t\t\t\t      mq:\t\tNew CI branch for each PR, including previous unmerged PRs
              \t\t\t\t      rebase:\t\tNo merge queues, but folks rebase to main before merging
              \t\t\t\t      yolo:\t\tNo rules, you do you
-          DESC
+           DESC
 
-    def call(auto:, commits:, features:, persist_log:, strategy:)
+    def call(auto:, commits:, features:, persist_log:, strategy:, silent:)
       commits = commits.to_i
       features = features.to_i
-      ::MergeQueue.new(auto:, commits:, features:, persist_log:, strategy:)
+      ::MergeQueue.new(auto:, commits:, features:, persist_log:, strategy:, silent:)
     end
   end
 end

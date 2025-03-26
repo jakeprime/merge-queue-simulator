@@ -17,12 +17,12 @@ class MergeQueue
   include Memery
   include TimeSimulator
 
-  def initialize(auto:, commits:, features:, persist_log:, strategy: 'sq')
+  def initialize(auto:, commits:, features:, persist_log:, silent:, strategy: 'sq')
     @strategy = strategy
 
     @git_client = GitClient.new
     @circle = Circle.new(git: git_client)
-    @printer = Printer.new(circle, tail: auto, persist: persist_log, show_commands: !auto)
+    @printer = Printer.new(circle, silent:, tail: auto, persist: persist_log, show_commands: !auto)
 
     printer.print_output
 
