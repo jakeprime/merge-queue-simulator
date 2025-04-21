@@ -15,18 +15,24 @@ module MergeStrategy
 
     def merge(feature)
       merge_branch = branch_name
-      git.create_branch(merge_branch, start_point: feature.branch_name)
-      git.rebase(merge_branch, onto: (merge_branches.last || 'main'))
 
-      merge_branches << merge_branch
+      successful = stats.record_merge do
+        git.create_branch(merge_branch, start_point: feature.branch_name)
+        git.rebase(merge_branch, onto: merge_branches.last || 'main')
 
-      sha = git.sha(merge_branch)
+        merge_branches << merge_branch
 
-      result = circle.run(sha, result: feature.ci_result)
+        sha = git.sha(merge_branch)
 
-      return if result == Circle::SUCCESS && handle_success(merge_branch, feature)
+        circle.run(sha)
+        circle.status(sha) == Circle::SUCCESS
+      end
 
-      handle_failure(merge_branch, feature)
+      if successful
+        handle_success(merge_branch, feature)
+      else
+        handle_failure(merge_branch, feature)
+      end
     end
 
     private
@@ -56,6 +62,7 @@ module MergeStrategy
     end
 
     def handle_failure(branch_name, feature)
+      return
       position = merge_branches.index(branch_name)
 
       merge_branches.slice!(position..-1) if position
@@ -64,6 +71,7 @@ module MergeStrategy
       # if this wasn't the first feature in the queue than the failure was likely
       # from a previous commit, so try again
       return if position&.zero?
+
       merge(feature)
     end
 
