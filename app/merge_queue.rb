@@ -14,11 +14,11 @@ require_relative 'feature'
 require_relative 'git_client'
 require_relative 'merge_strategy'
 require_relative 'printer'
+require_relative 'stats'
 
 class MergeQueue
   include Accessors
   include Memery
-  include TimeSimulator
 
   def call
     init_services
@@ -42,6 +42,8 @@ class MergeQueue
 
     printer.stop
     git.teardown
+    time.stop_clock
+    stats.summarize
   end
 
   def config

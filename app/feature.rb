@@ -3,7 +3,6 @@
 class Feature
   include Accessors
   include Memery
-  include TimeSimulator
 
   @all = []
 
@@ -31,9 +30,9 @@ class Feature
 
   def simulate!(in_about:, commits:)
     @thread = Thread.new do
-      in_about(in_about) { create_branch }
+      time.in_about(in_about) { create_branch }
       make_some_commits(commits)
-      in_up_to(1.hour) { attempt_merge }
+      time.in_up_to(1.hour) { attempt_merge }
     end
 
     self
@@ -94,7 +93,7 @@ class Feature
 
   def make_some_commits(commits)
     (1..commits).to_a.sample.times do
-      in_up_to(1.hour) do
+      time.in_up_to(1.hour) do
         create_commit
       end
     end

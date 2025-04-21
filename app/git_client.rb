@@ -3,6 +3,8 @@
 require 'git'
 
 class GitClient
+  include Accessors
+
   GIT_FOLDER = File.join(File.dirname(__FILE__), '..', 'tmp')
 
   class << self
@@ -11,19 +13,18 @@ class GitClient
 
   def initialize
     @client = init_repo!
-    @mutex = Mutex.new
 
     client.commit('Initial commit', allow_empty: true)
   end
 
   def create_branch(branch_name, start_point: 'main')
-    safely do
+    instantly do
       client.checkout(branch_name, new_branch: true, start_point:)
     end
   end
 
   def create_commit(branch_name)
-    safely do
+    instantly do
       client.checkout(branch_name)
       client.commit(commit_description, allow_empty: true)
     end
@@ -42,38 +43,43 @@ class GitClient
   def rebase(branch_name, onto: 'main', **opts)
     options = opts.keys.map { "--#{it.to_s.gsub('_', '-')}" }.join(' ')
 
-    safely do
+    instantly do
       client.checkout(branch_name)
       `pushd #{GIT_FOLDER}; git rebase #{options} #{onto} > /dev/null 2>&1; popd`
     end
-    client.checkout('main')
   end
 
   def merge(branch_name, onto: 'main', no_ff: true)
-    safely do
+    instantly do
       client.checkout(onto)
       client.merge(branch_name, "Merging #{branch_name}", no_ff:)
-      delete_branch(branch_name) if onto == 'main'
+      client.branch(branch_name).delete if onto == 'main'
     end
   end
 
   def delete_branch(branch_name)
-    client.branch(branch_name).delete
+    instantly do
+      client.branch(branch_name).delete
+    end
   end
 
   def sha(branch_name)
-    safely do
+    instantly do
       client.checkout(branch_name)
       client.object('HEAD').sha
     end
   end
 
   def commit_message(sha)
-    client.gcommit(sha).message
+    instantly do
+      client.gcommit(sha).message
+    end
   end
 
   def parents(sha)
-    client.gcommit(sha).log.map(&:sha) - [sha]
+    instantly do
+      client.gcommit(sha).log.map(&:sha) - [sha]
+    end
   end
 
   def teardown
@@ -87,13 +93,15 @@ class GitClient
     Git.init(GIT_FOLDER)
   end
 
-  def safely
-    mutex.synchronize do
-      result = yield
-      client.checkout('main')
-      result
+  # git operations take time, which is significant when we are running time
+  # at multiples of 1,000s faster bNn
+  def instantly
+    time.pause do
+      yield.tap do
+        client.checkout('main')
+      end
     end
   end
 
-  attr_reader :client, :mutex
+  attr_reader :client
 end

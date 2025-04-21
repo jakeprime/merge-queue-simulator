@@ -4,7 +4,6 @@ require 'digest'
 
 class Circle
   include Accessors
-  include TimeSimulator
 
   IN_PROGRESS = :in_progress
   SUCCESS = :success
@@ -29,8 +28,10 @@ class Circle
     # the sha also depends on parents
     set_sha_status(sha, IN_PROGRESS)
 
-    in_about(10.minutes) do
-      set_sha_status(sha, parents_passing?(sha) ? result : FAILURE)
+    stats.record_ci do
+      time.in_about(10.minutes) do
+        set_sha_status(sha, parents_passing?(sha) ? result : FAILURE)
+      end
     end
   end
 
