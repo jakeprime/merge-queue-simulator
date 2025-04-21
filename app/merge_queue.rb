@@ -81,7 +81,7 @@ class MergeQueue
     when 'c'
       Feature.create_commit
     when 'm'
-      Thread.new { Feature.merge_branch; printer.print_output }
+      Feature.merge_branch
     end
 
     printer.print_output

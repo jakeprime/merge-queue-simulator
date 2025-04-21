@@ -56,7 +56,12 @@ class Circle
 
   def parents_passing?(sha)
     # if any of the parents will fail then so will this so check them first
-    git.parents(sha).none? { results_by_commit[git.commit_message(sha)] == FAILURE }
+    git.parents(sha).all? do |parent_sha|
+      next false if results_by_commit[git.commit_message(parent_sha)] == FAILURE
+      next false if results_by_sha[parent_sha] == FAILURE
+
+      true
+    end
   end
 
   def random_result = Random.rand < 0.3 ? Circle::FAILURE : Circle::SUCCESS

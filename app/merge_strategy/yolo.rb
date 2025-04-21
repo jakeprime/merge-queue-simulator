@@ -5,9 +5,9 @@ module MergeStrategy
     include Accessors
 
     def merge(feature)
-      if circle.run(feature.sha) == Circle::SUCCESS
-        git.merge(feature.branch_name)
-      end
+      git.merge(feature.branch_name)
+      sha = git.sha('main')
+      circle.run(sha)
     end
   end
 end
