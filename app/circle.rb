@@ -3,14 +3,18 @@
 require 'digest'
 
 class Circle
+  include Accessors
   include TimeSimulator
 
   IN_PROGRESS = :in_progress
   SUCCESS = :success
   FAILURE = :failure
 
-  def initialize(git:)
-    @git = git
+  class << self
+    def instance = @instance ||= new
+  end
+
+  def initialize
     @results_by_sha = {}
     @results_by_commit = {}
   end
@@ -65,5 +69,5 @@ class Circle
     normalized < 0.3 ? FAILURE : SUCCESS
   end
 
-  attr_reader :git, :results_by_sha, :results_by_commit
+  attr_reader :results_by_sha, :results_by_commit
 end

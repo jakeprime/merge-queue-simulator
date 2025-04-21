@@ -3,18 +3,21 @@
 require 'io/console'
 
 class Printer
-  def initialize(circle, tail: false, persist: false, show_commands: false, silent: true)
+  include Accessors
+
+  class << self
+    def init(...) = @instance ||= new(...)
+
+    attr_reader :instance
+  end
+
+  def initialize(config: Config.default)
     $stdout.sync = true
 
-    @circle = circle
+    @config = config
     @statuses = []
-    @show_commands = show_commands
-    @persist = persist
-    @silent = silent
 
-    print_output
-
-    self.tail if tail
+    tail if auto?
   end
 
   def tail
@@ -46,7 +49,7 @@ class Printer
     lines += reversed_output(with_circle_statuses(output)).lines
     unless silent
       lines << ''
-      lines += commands if show_commands
+      lines += commands if show_commands?
       lines << ''
       lines += (persist? ? statuses : [statuses.last])
       lines << ''
@@ -58,10 +61,14 @@ class Printer
 
   private
 
-  attr_reader :statuses, :show_commands, :circle, :silent
+  delegate :auto, :persist_log, :silent, to: :config
+
+  attr_reader :config, :statuses, :show_commands
 
   def printing? = @printing
-  def persist? = @persist
+  def persist? = persist_log
+  def auto? = auto
+  def show_commands? = !auto?
 
   def reversed_output(output)
     output.lines.reverse.map do |line|
@@ -87,7 +94,7 @@ class Printer
   end
 
   def circle_status(sha)
-    return {
+    {
       Circle::SUCCESS => '🟢',
       Circle::FAILURE => '🔴',
       Circle::IN_PROGRESS => '🟡',

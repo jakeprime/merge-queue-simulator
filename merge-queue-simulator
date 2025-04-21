@@ -50,9 +50,16 @@ module Cli
            DESC
 
     def call(auto:, commits:, features:, persist_log:, strategy:, silent:)
-      commits = commits.to_i
-      features = features.to_i
-      ::MergeQueue.new(auto:, commits:, features:, persist_log:, strategy:, silent:)
+      mq = ::MergeQueue.new
+      mq.config do |config|
+        config.auto = auto
+        config.commits = commits.to_i
+        config.features = features.to_i
+        config.persist_log = persist_log
+        config.strategy = strategy
+        config.silent = silent
+      end
+      mq.call
     end
   end
 end

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 class Feature
+  include Accessors
   include Memery
   include TimeSimulator
 
@@ -18,10 +19,7 @@ class Feature
     end
   end
 
-  def initialize(git, printer, circle, merge_strategy:, create_branch: false, create_commit: false, rebase: false)
-    @git = git
-    @printer = printer
-    @circle = circle
+  def initialize(merge_strategy:, create_branch: false, create_commit: false, rebase: false)
     @merge_strategy = merge_strategy
     @rebase = rebase
 
@@ -84,7 +82,7 @@ class Feature
 
   private
 
-  attr_reader :git, :thread, :printer, :circle, :merge_strategy
+  attr_reader :thread, :merge_strategy
 
   def rebase? = @rebase
 

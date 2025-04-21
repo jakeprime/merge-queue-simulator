@@ -5,6 +5,10 @@ require 'git'
 class GitClient
   GIT_FOLDER = File.join(File.dirname(__FILE__), '..', 'tmp')
 
+  class << self
+    def instance = @instance ||= new
+  end
+
   def initialize
     @client = init_repo!
     @mutex = Mutex.new

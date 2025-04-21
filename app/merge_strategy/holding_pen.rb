@@ -6,12 +6,10 @@ require_relative '../file_logger'
 
 module MergeStrategy
   class HoldingPen
+    include Accessors
     include Memery
 
-    def initialize(git:, circle:)
-      @circle = circle
-      @git = git
-
+    def initialize
       @ci_running = false
       @waiting = []
     end
@@ -98,6 +96,6 @@ module MergeStrategy
     def branch_name = "merge-queue-#{count}"
 
     attr_accessor :merge_branches
-    attr_reader :git, :circle, :waiting
+    attr_reader :waiting
   end
 end
