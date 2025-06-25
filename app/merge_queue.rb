@@ -25,9 +25,11 @@ class MergeQueue
     printer.print_output
 
     if auto?
-      features.times
-        .map do |count|
-          create_feature.tap { it.simulate!(in_about: count.hours, commits:) }
+      duration = 1.day
+      features = duration.in_days * 35
+
+      features.times.map do
+        create_feature.tap { it.simulate!(in_up_to: duration, commits:) }
       end
         .map(&:wait_for_completion)
       git.create_commit('main')
@@ -48,7 +50,9 @@ class MergeQueue
 
   def config
     @config ||= Config.default
+
     yield @config if block_given?
+
     @config
   end
 

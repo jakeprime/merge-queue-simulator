@@ -72,7 +72,7 @@ class Circle
     hash = Digest::MD5.hexdigest(git.commit_message(sha))
     normalized = hash.to_i(16).to_f / (2**128) # gives a value 0..1
 
-    normalized < 0.3 ? FAILURE : SUCCESS
+    normalized < 0.7 ? FAILURE : SUCCESS
   end
 
   attr_reader :results_by_sha, :results_by_commit

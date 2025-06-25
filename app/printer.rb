@@ -28,7 +28,7 @@ class Printer
     Thread.new do
       while printing?
         print_output
-        sleep(0.1)
+        sleep(1)
       end
     end
   end

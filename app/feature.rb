@@ -28,18 +28,15 @@ class Feature
     self.class.all << self
   end
 
-  def simulate!(in_about:, commits:)
+  def simulate!(in_up_to:, commits:)
     @thread = Thread.new do
-      time.in_about(in_about) { create_branch }
+      time.in_up_to(in_up_to) { create_branch }
       make_some_commits(commits)
       time.in_up_to(1.hour) { attempt_merge }
     end
 
     self
   end
-
-  def ci_result = Random.rand < 0.3 ? Circle::FAILURE : Circle::SUCCESS
-  memoize :ci_result
 
   def wait_for_completion
     thread&.join

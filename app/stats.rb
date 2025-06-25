@@ -22,23 +22,21 @@ class Stats
 
   def record_merge
     start_time = time.now
-    successful = yield
-
-    deploy_times << { time: time.now - start_time, successful: }
+    yield.tap do |result|
+      deploy_times << { time: time.now - start_time, successful: result}
+    end
   end
 
   def record_ci
     start_time = time.now
-    result = yield
-    ci_times << (time.now - start_time)
-
-    result
+    yield.tap do
+      ci_times << (time.now - start_time)
+    end
   end
 
   def summarize
     summarize_blockages
     summarize_deploy_times
-    summarize_ci_times
   end
 
   private
@@ -64,7 +62,7 @@ class Stats
 
   def summarize_deploy_times
     times = deploy_times.filter_map { it[:time] if it[:successful] }
-    puts deploy_times.map { it.merge(time: it[:time].in_minutes) }
+
     if times.none?
       puts 'No successful deploys'
     else

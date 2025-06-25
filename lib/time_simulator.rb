@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
 class TimeSimulator
-  TIME_STEP = 1.seconds
-  TIME_SPEED = 6_000
-  CLOCK_TICK = 1.0 / (TIME_STEP * TIME_SPEED)
+  TIME_STEP = 60.seconds
+  CLOCK_TICK = 0.01
 
   class << self
     def instance = @instance ||= new
@@ -37,10 +36,9 @@ class TimeSimulator
   def pause
     mutex.synchronize do
       @paused = true
-      result = yield
-      @paused = false
-
-      result
+      yield.tap do
+        @paused = false
+      end
     end
   end
 
