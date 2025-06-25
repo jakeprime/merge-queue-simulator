@@ -22,9 +22,19 @@ class Stats
 
   def record_merge
     start_time = time.now
+
     yield.tap do |result|
-      deploy_times << { time: time.now - start_time, successful: result}
+      deploy_times << { time: time.now - start_time, successful: result }
     end
+  end
+
+  def start_merge(feature)
+    merges_in_progress[feature] = time.now
+  end
+
+  def end_merge(feature)
+    deploy_times << { time: time.now - merges_in_progress[feature], successful: true }
+    merges_in_progress.delete(feature)
   end
 
   def record_ci
@@ -35,7 +45,7 @@ class Stats
   end
 
   def summarize
-    summarize_blockages
+    # summarize_blockages
     summarize_deploy_times
   end
 
@@ -46,6 +56,7 @@ class Stats
   def ci_times = @ci_times ||= []
   def deploy_blockages = @deploy_blockages ||= []
   def deploy_times = @deploy_times ||= []
+  def merges_in_progress = @merges_in_progress ||= {}
 
   def summarize_blockages
     unblock_deploys

@@ -10,12 +10,13 @@ class Circle
   FAILURE = :failure
 
   class << self
-    def instance = @instance ||= new
+    def instance(...) = @instance ||= new(...)
   end
 
-  def initialize
+  def initialize(config:)
     @results_by_sha = {}
     @results_by_commit = {}
+    @config = config
   end
 
   attr_accessor :printer
@@ -29,7 +30,7 @@ class Circle
     set_sha_status(sha, IN_PROGRESS)
 
     stats.record_ci do
-      time.in_about(10.minutes) do
+      time.in(config.ci_run_time) do
         set_sha_status(sha, parents_passing?(sha) ? result : FAILURE)
       end
     end
@@ -65,15 +66,15 @@ class Circle
     end
   end
 
-  def random_result = Random.rand < 0.3 ? Circle::FAILURE : Circle::SUCCESS
+  def random_result = Random.rand < 0.0 ? Circle::FAILURE : Circle::SUCCESS
 
   def sha_to_result(sha)
     # determinisitally get a random result using the commit message
     hash = Digest::MD5.hexdigest(git.commit_message(sha))
     normalized = hash.to_i(16).to_f / (2**128) # gives a value 0..1
 
-    normalized < 0.7 ? FAILURE : SUCCESS
+    normalized < 0.0 ? FAILURE : SUCCESS
   end
 
-  attr_reader :results_by_sha, :results_by_commit
+  attr_reader :results_by_sha, :results_by_commit, :config
 end

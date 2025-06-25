@@ -10,7 +10,7 @@ class Config
       config.features = 3
       config.merges_per_day = 10
       config.persist_log = false
-      config.silent = true
+      config.silent = false
       config.strategy = 'mq'
     end
   end

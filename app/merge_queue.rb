@@ -63,7 +63,7 @@ class MergeQueue
 
   def init_services
     GitClient.instance
-    Circle.instance
+    Circle.instance(config:)
     Printer.init(config:)
   end
 

@@ -16,21 +16,20 @@ class Printer
 
     @config = config
     @statuses = []
-
   end
 
-  def tail
-    return if printing?
+  # def tail
+  #   return if printing?
 
-    @printing = true
+  #   @printing = true
 
-    Thread.new do
-      while printing?
-        print_output
-        sleep(1)
-      end
-    end
-  end
+  #   Thread.new do
+  #     while printing?
+  #       print_output
+  #       sleep(1)
+  #     end
+  #   end
+  # end
 
   def stop
     @printing = false
@@ -42,18 +41,18 @@ class Printer
   end
 
   def print_output
+    return if silent
+
     time.pause do
       output = `cd tmp && git log --oneline --decorate --graph --color=always --all && cd ..`
 
       lines = []
       lines += reversed_output(with_circle_statuses(output)).lines
-      unless silent
-        lines << ''
-        lines += commands if show_commands?
-        lines << ''
-        lines += (persist? ? statuses : [statuses.last])
-        lines << ''
-      end
+      lines << ''
+      lines += commands if show_commands?
+      lines << ''
+      lines += (persist? ? statuses : [statuses.last])
+      lines << ''
 
       IO.console.clear_screen
       puts(lines.compact.map(&:strip).map { "#{it}\r" })

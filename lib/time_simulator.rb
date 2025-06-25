@@ -46,7 +46,7 @@ class TimeSimulator
 
   def now = @timer
 
-  def paused? = @paused
+  def paused? = @locks.values.compact.any?
   def stop? = @stop
 
   def in_about(time)
@@ -54,6 +54,11 @@ class TimeSimulator
     random_variation = (Random.rand * 0.5) + 0.75
     wait_for(time * random_variation)
 
+    yield
+  end
+
+  def in(time)
+    wait_for(time)
     yield
   end
 

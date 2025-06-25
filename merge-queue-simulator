@@ -61,7 +61,7 @@ module Cli
 
     option :silent,
            type: :boolean,
-           default: true,
+           default: false,
            desc: 'Don’t show log outputs on screen'
 
     option :strategy,

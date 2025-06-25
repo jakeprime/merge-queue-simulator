@@ -15,6 +15,8 @@ module MergeStrategy
     end
 
     def merge(feature)
+      stats.start_merge(feature.branch_name)
+
       waiting.push(feature)
 
       run_next_queue
@@ -42,7 +44,10 @@ module MergeStrategy
 
         git.merge(merge_branch, no_ff: false)
 
-        queue.each { git.delete_branch(it.branch_name) }
+        queue.each do
+          git.delete_branch(it.branch_name)
+          stats.end_merge(it.branch_name)
+        end
       end
 
       @ci_running = false
@@ -74,8 +79,6 @@ module MergeStrategy
               break true
             end
           end
-
-          sleep(1)
         end
         handle_failure(merge_branch, feature) unless success
       end.join
