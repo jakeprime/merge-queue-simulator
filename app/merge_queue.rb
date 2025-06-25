@@ -25,7 +25,7 @@ class MergeQueue
     printer.print_output
 
     if auto?
-      features = duration.in_days * merges_per_day
+      features = (duration.in_days * merges_per_day).round
 
       features.times.map do
         create_feature.tap { it.simulate!(in_up_to: duration, commits:) }

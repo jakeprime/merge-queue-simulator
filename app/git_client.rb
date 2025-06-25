@@ -20,6 +20,7 @@ class GitClient
   def create_branch(branch_name, start_point: 'main')
     instantly do
       client.checkout(branch_name, new_branch: true, start_point:)
+      printer.print_output
     end
   end
 
@@ -27,6 +28,7 @@ class GitClient
     instantly do
       client.checkout(branch_name)
       client.commit(commit_description, allow_empty: true)
+      printer.print_output
     end
   end
 
@@ -46,6 +48,7 @@ class GitClient
     instantly do
       client.checkout(branch_name)
       `pushd #{GIT_FOLDER}; git rebase #{options} #{onto} > /dev/null 2>&1; popd`
+      printer.print_output
     end
   end
 
@@ -54,6 +57,7 @@ class GitClient
       client.checkout(onto)
       client.merge(branch_name, "Merging #{branch_name}", no_ff:)
       client.branch(branch_name).delete if onto == 'main'
+      printer.print_output
     end
   end
 

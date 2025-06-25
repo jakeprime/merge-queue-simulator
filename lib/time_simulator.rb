@@ -10,7 +10,7 @@ class TimeSimulator
 
   def initialize
     @timer = 0
-    @paused = false
+    @locks = Hash.new(false)
     @mutex = Mutex.new
 
     start_clock
@@ -34,10 +34,12 @@ class TimeSimulator
   end
 
   def pause
+    return yield if @locks[Thread.current]
+
     mutex.synchronize do
-      @paused = true
+      @locks[Thread.current] = true
       yield.tap do
-        @paused = false
+        @locks[Thread.current] = false
       end
     end
   end
