@@ -26,11 +26,38 @@ module Cli
            default: 3,
            desc: 'Number of features to create when --auto is true'
 
+    option :ci_run_time,
+           type: :string,
+           aliases: ['-c'],
+           default: '10m',
+           desc: <<~DESC
+             Time taken for CI to run
+             \t\t\t\t      The units can be s (seconds) or m (minutes)
+             \t\t\t\t      e.g. 3 minutes would be `--ci 3m`
+           DESC
+
     option :commits,
            type: :integer,
-           aliases: ['-c'],
+           aliases: ['-C'],
            default: 3,
            desc: 'Upper range for random number of commits per feature when --auto is true'
+
+    option :duration,
+           type: :string,
+           aliases: ['-d'],
+           default: '1d',
+           desc: <<~DESC
+             Length of "real" time to simulate run time for
+             \t\t\t\t      The units can be h (hours), d (days), w(weeks)
+             \t\t\t\t      e.g. 3 days would be `--time 3d`
+             \t\t\t\t      To simulate a working week 8h == 1d and 5d == 1w
+           DESC
+
+    option :merges_per_day,
+           type: :integer,
+           aliases: ['-m'],
+           default: 10,
+           desc: 'Number of PR merges attempted per day'
 
     option :silent,
            type: :boolean,
@@ -49,17 +76,35 @@ module Cli
              \t\t\t\t      yolo:\t\tNo rules, you do you
            DESC
 
-    def call(auto:, commits:, features:, persist_log:, strategy:, silent:)
+    def call(auto:, ci_run_time:, commits:, duration:, features:, merges_per_day:, persist_log:, strategy:, silent:)
       mq = ::MergeQueue.new
       mq.config do |config|
         config.auto = auto
+        config.ci_run_time = parse_time(ci_run_time)
         config.commits = commits.to_i
+        config.duration = parse_time(duration)
         config.features = features.to_i
+        config.merges_per_day = merges_per_day.to_i
         config.persist_log = persist_log
         config.strategy = strategy
         config.silent = silent
       end
       mq.call
+    end
+
+    def parse_time(input)
+      number = input.to_i
+      unit = input[-1]
+
+      method = {
+        's' => :seconds,
+        'm' => :minutes,
+        'h' => :hours,
+        'd' => :days,
+        'w' => :weeks,
+      }[unit]
+
+      number.public_send(method)
     end
   end
 end

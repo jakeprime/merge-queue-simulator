@@ -25,8 +25,7 @@ class MergeQueue
     printer.print_output
 
     if auto?
-      duration = 1.day
-      features = duration.in_days * 35
+      features = duration.in_days * merges_per_day
 
       features.times.map do
         create_feature.tap { it.simulate!(in_up_to: duration, commits:) }
@@ -58,7 +57,7 @@ class MergeQueue
 
   private
 
-  delegate :auto, :commits, :features, :strategy, to: :config
+  delegate :auto, :commits, :features, :merges_per_day, :strategy, :duration, to: :config
 
   def auto? = auto
 
