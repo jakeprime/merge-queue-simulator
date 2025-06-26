@@ -2,7 +2,7 @@
 
 class TimeSimulator
   TIME_STEP = 60.seconds
-  CLOCK_TICK = 0.01
+  CLOCK_TICK = 0.1
 
   class << self
     def instance = @instance ||= new
@@ -49,9 +49,9 @@ class TimeSimulator
   def paused? = @locks.values.compact.any?
   def stop? = @stop
 
-  def in_about(time)
+  def in_about(time, variance = 0.5)
     # randomly vary from 75% to 125% of given time value
-    random_variation = (Random.rand * 0.5) + 0.75
+    random_variation = (Random.rand * variance) + (1 - (variance / 2))
     wait_for(time * random_variation)
 
     yield

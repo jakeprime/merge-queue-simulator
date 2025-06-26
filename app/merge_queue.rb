@@ -65,11 +65,12 @@ class MergeQueue
     GitClient.instance
     Circle.instance(config:)
     Printer.init(config:)
+    Stats.instance(config:)
   end
 
   def merge_strategy
     {
-      'yolo' => MergeStrategy::Yolo.new,
+      'cleo' => MergeStrategy::Yolo.new,
       'rebase' => MergeStrategy::RebaseBeforeCi.new,
       'mq' => MergeStrategy::QueueBranches.new,
       'sq' => MergeStrategy::HoldingPen.new,

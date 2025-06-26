@@ -7,7 +7,7 @@ class Config
       config.ci_run_time = 10.minutes
       config.commits = 3
       config.duration = 1.day
-      config.features = 3
+      config.flakiness = 0.0
       config.merges_per_day = 10
       config.persist_log = false
       config.silent = false
@@ -15,5 +15,5 @@ class Config
     end
   end
 
-  attr_accessor :auto, :ci_run_time, :commits, :features, :merges_per_day, :persist_log, :silent, :strategy, :duration
+  attr_accessor :auto, :ci_run_time, :commits, :flakiness, :merges_per_day, :persist_log, :silent, :strategy, :duration
 end

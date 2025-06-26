@@ -22,15 +22,16 @@ class Circle
   attr_accessor :printer
   attr_reader :test_results
 
-  def run(sha, result: random_result)
+  def run(sha, result: nil)
     # this is the result the individual commit should always resolve to
+    result ||= sha_to_result(sha)
     set_commit_status(sha, result)
 
     # the sha also depends on parents
     set_sha_status(sha, IN_PROGRESS)
 
     stats.record_ci do
-      time.in(config.ci_run_time) do
+      time.in_about(config.ci_run_time, 0.1) do
         set_sha_status(sha, parents_passing?(sha) ? result : FAILURE)
       end
     end
@@ -72,6 +73,8 @@ class Circle
     # determinisitally get a random result using the commit message
     hash = Digest::MD5.hexdigest(git.commit_message(sha))
     normalized = hash.to_i(16).to_f / (2**128) # gives a value 0..1
+
+    return FAILURE if Random.rand < config.flakiness
 
     normalized < 0.0 ? FAILURE : SUCCESS
   end

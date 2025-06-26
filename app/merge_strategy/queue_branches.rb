@@ -15,25 +15,24 @@ module MergeStrategy
 
     def merge(feature)
       merge_branch = branch_name
+      stats.start_merge(feature.branch_name)
 
-      stats.record_merge do
-        git.create_branch(merge_branch, start_point: feature.branch_name)
-        git.rebase(merge_branch, onto: merge_branches.last || 'main')
+      git.create_branch(merge_branch, start_point: feature.branch_name)
+      git.rebase(merge_branch, onto: merge_branches.last || 'main')
 
-        merge_branches << merge_branch
+      merge_branches << merge_branch
 
-        sha = git.sha(merge_branch)
+      sha = git.sha(merge_branch)
 
-        circle.run(sha)
-        successful = circle.status(sha) == Circle::SUCCESS
+      circle.run(sha)
+      successful = circle.status(sha) == Circle::SUCCESS
 
-        if successful
-          handle_success(merge_branch, feature)
-        else
-          handle_failure(merge_branch, feature)
-        end
-        successful
+      if successful
+        handle_success(merge_branch, feature)
+      else
+        handle_failure(merge_branch, feature)
       end
+      successful
     end
 
     private
@@ -60,6 +59,7 @@ module MergeStrategy
         git.merge(feature.branch_name)
         merge_branches.shift
       end
+      stats.end_merge(feature.branch_name)
     end
 
     def handle_failure(branch_name, feature)
@@ -70,9 +70,12 @@ module MergeStrategy
 
       # if this wasn't the first feature in the queue than the failure was likely
       # from a previous commit, so try again
-      return if position&.zero?
 
-      merge(feature)
+      if position&.zero?
+        stats.end_merge(feature.branch_name, successful: false)
+      else
+        merge(feature)
+      end
     end
 
     def branch_name = "merge-queue-#{count}"

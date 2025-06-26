@@ -4,7 +4,11 @@ class Stats
   include Accessors
 
   class << self
-    def instance = @instance ||= new
+    def instance(...) = @instance ||= new(...)
+  end
+
+  def initialize(config:)
+    @config = config
   end
 
   def block_deploys
@@ -29,11 +33,11 @@ class Stats
   end
 
   def start_merge(feature)
-    merges_in_progress[feature] = time.now
+    merges_in_progress[feature] ||= time.now
   end
 
-  def end_merge(feature)
-    deploy_times << { time: time.now - merges_in_progress[feature], successful: true }
+  def end_merge(feature, successful: true)
+    deploy_times << { time: time.now - merges_in_progress[feature], successful: }
     merges_in_progress.delete(feature)
   end
 
@@ -51,7 +55,7 @@ class Stats
 
   private
 
-  attr_reader :deploys_blocked_at
+  attr_reader :deploys_blocked_at, :config
 
   def ci_times = @ci_times ||= []
   def deploy_blockages = @deploy_blockages ||= []
@@ -72,13 +76,20 @@ class Stats
   end
 
   def summarize_deploy_times
-    times = deploy_times.filter_map { it[:time] if it[:successful] }
+    successes = deploy_times.filter_map { it[:time] if it[:successful] }
+    failures = deploy_times.filter_map { it[:time] unless it[:successful] }
+    all_times = successes + failures
 
-    if times.none?
-      puts 'No successful deploys'
-    else
-      average_deploy_time = times.sum / times.count
-      puts "Average from merge to deploy #{average_deploy_time.in_minutes} minutes"
-    end
+    puts 'Parameters:'
+    puts "  Duration:    #{config.duration.to_words}"
+    puts "  Flakiness:   #{(config.flakiness * 100).to_i}%"
+    puts "  CI run time: #{config.ci_run_time.to_words}"
+    puts ''
+    puts 'Results:'
+    puts "  Total merge attempts:   #{deploy_times.count}"
+    puts "  Successful merges:      #{successes.count}"
+    puts "  Failed merges:          #{failures.count}"
+    puts "  Average time to deploy: #{(all_times.sum / all_times.count).to_words}"
+    puts "  Max time to deploy:     #{all_times.max.to_words}"
   end
 end

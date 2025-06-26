@@ -20,11 +20,11 @@ module Cli
            default: false,
            desc: 'Keep all log messages on screen'
 
-    option :features,
+    option :flakiness,
            type: :integer,
            aliases: ['-f'],
-           default: 3,
-           desc: 'Number of features to create when --auto is true'
+           default: 0,
+           desc: 'Number of successful CI runs per flake, 0 for no flakes'
 
     option :ci_run_time,
            type: :string,
@@ -73,23 +73,29 @@ module Cli
              \t\t\t\t      sq (default):\tSingle branch at a time runs CI on queued up PRs
              \t\t\t\t      mq:\t\tNew CI branch for each PR, including previous unmerged PRs
              \t\t\t\t      rebase:\t\tNo merge queues, but folks rebase to main before merging
-             \t\t\t\t      yolo:\t\tNo rules, you do you
+             \t\t\t\t      cleo:\t\tNo rules, you do you
            DESC
 
-    def call(auto:, ci_run_time:, commits:, duration:, features:, merges_per_day:, persist_log:, strategy:, silent:)
+    def call(auto:, ci_run_time:, commits:, duration:, flakiness:, merges_per_day:, persist_log:, strategy:, silent:)
       mq = ::MergeQueue.new
       mq.config do |config|
         config.auto = auto
         config.ci_run_time = parse_time(ci_run_time)
         config.commits = commits.to_i
         config.duration = parse_time(duration)
-        config.features = features.to_i
+        config.flakiness = ratio(flakiness)
         config.merges_per_day = merges_per_day.to_i
         config.persist_log = persist_log
         config.strategy = strategy
         config.silent = silent
       end
       mq.call
+    end
+
+    def ratio(input)
+      return 0.0 if input.to_i.zero?
+
+      1.0 / input.to_i
     end
 
     def parse_time(input)
